@@ -1,26 +1,28 @@
 import * as React from "react";
 import { StyleSheet, StyleProp, ViewStyle, TextStyle } from "react-native";
-import { Button } from "react-native-paper";
+import { Button, useTheme } from "react-native-paper";
 
 type ButtonMode = "text" | "outlined" | "contained";
 
 interface CustomButtonProps {
-  title: string; // Button text
-  mode?: ButtonMode; // Button style: text, outlined, contained
-  onPress: () => void; // Callback function for press
-  disabled?: boolean; // Disable button
-  loading?: boolean; // Show loading spinner
-  icon?: string | undefined; // Optional icon
-  style?: StyleProp<ViewStyle>; // Custom button container style
-  labelStyle?: StyleProp<TextStyle>; // Custom button label style
-  contentStyle?: StyleProp<ViewStyle>; // Custom button content style
-  color?: string; // Custom button background color
-  textColor?: string; // Custom button text color
+  title: string;
+  mode?: ButtonMode;
+  onPress: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+  icon?: string | undefined;
+  style?: StyleProp<ViewStyle>;
+  labelStyle?: StyleProp<TextStyle>;
+  contentStyle?: StyleProp<ViewStyle>;
+  color?: string;
+  textColor?: string;
+  accessibilityLabel?: string; // For accessibility support
+  testID?: string; // For testing frameworks
 }
 
 const CustomButton: React.FC<CustomButtonProps> = ({
   title,
-  mode = "contained", // Default to "contained"
+  mode = "contained",
   onPress,
   disabled = false,
   loading = false,
@@ -28,21 +30,26 @@ const CustomButton: React.FC<CustomButtonProps> = ({
   style,
   labelStyle,
   contentStyle,
-  color, // Custom background color
-  textColor, // Custom text color
+  color,
+  textColor,
+  accessibilityLabel,
+  testID,
 }) => {
-  // Combine default styles with user-provided styles
-  const buttonStyles = [
-    styles.button,
-    style, // External custom styles
-    color ? { backgroundColor: color } : {}, // Override background color if provided
-  ];
+  const theme = useTheme(); // Use theme for default colors
 
-  const labelStyles = [
+  const buttonStyles = StyleSheet.flatten([
+    styles.button,
+    style,
+    color
+      ? { backgroundColor: color }
+      : { backgroundColor: theme.colors.primary }, // Default to theme color
+  ]);
+
+  const labelStyles = StyleSheet.flatten([
     styles.label,
-    labelStyle, // External custom label styles
-    textColor ? { color: textColor } : {}, // Override text color if provided
-  ];
+    labelStyle,
+    textColor ? { color: textColor } : { color: theme.colors.onPrimary }, // Default to theme text color
+  ]);
 
   return (
     <Button
@@ -54,6 +61,8 @@ const CustomButton: React.FC<CustomButtonProps> = ({
       style={buttonStyles}
       labelStyle={labelStyles}
       contentStyle={[styles.content, contentStyle]}
+      accessibilityLabel={accessibilityLabel}
+      testID={testID}
     >
       {title}
     </Button>
