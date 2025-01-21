@@ -1,26 +1,28 @@
-import * as React from "react";
+import React from "react";
 import { StyleSheet, StyleProp, ViewStyle, TextStyle } from "react-native";
-import { Button, useTheme } from "react-native-paper";
+import { Button } from "react-native-paper";
+import { useTranslation } from "react-i18next"; // Multi-language support
+import { useAppTheme } from "../theme/theme-provider"; // Access theme
 
 type ButtonMode = "text" | "outlined" | "contained";
 
 interface CustomButtonProps {
-  title: string;
-  mode?: ButtonMode;
-  onPress: () => void;
-  disabled?: boolean;
-  loading?: boolean;
-  icon?: string | undefined;
-  style?: StyleProp<ViewStyle>;
-  labelStyle?: StyleProp<TextStyle>;
-  contentStyle?: StyleProp<ViewStyle>;
-  color?: string;
-  textColor?: string;
-  accessibilityLabel?: string; // For accessibility support
-  testID?: string; // For testing frameworks
+  titleKey?: string; // Translation key for button text
+  title?: string; // Direct text if no translation key
+  mode?: ButtonMode; // Button style: text, outlined, contained
+  onPress: () => void; // Callback function for press
+  disabled?: boolean; // Disable button
+  loading?: boolean; // Show loading spinner
+  icon?: string | undefined; // Optional icon
+  style?: StyleProp<ViewStyle>; // Custom button container style
+  labelStyle?: StyleProp<TextStyle>; // Custom button label style
+  contentStyle?: StyleProp<ViewStyle>; // Custom button content style
+  color?: string; // Custom button background color
+  textColor?: string; // Custom button text color
 }
 
 const CustomButton: React.FC<CustomButtonProps> = ({
+  titleKey,
   title,
   mode = "contained",
   onPress,
@@ -32,24 +34,26 @@ const CustomButton: React.FC<CustomButtonProps> = ({
   contentStyle,
   color,
   textColor,
-  accessibilityLabel,
-  testID,
 }) => {
-  const theme = useTheme(); // Use theme for default colors
+  const { t } = useTranslation(); // Multi-language support
+  const { theme } = useAppTheme(); // Access theme
 
-  const buttonStyles = StyleSheet.flatten([
+  // Resolve translation key or use direct title
+  const resolvedTitle = titleKey ? t(titleKey) : title;
+
+  const buttonStyles = [
     styles.button,
     style,
     color
       ? { backgroundColor: color }
-      : { backgroundColor: theme.colors.primary }, // Default to theme color
-  ]);
+      : { backgroundColor: theme.primaryColor },
+  ];
 
-  const labelStyles = StyleSheet.flatten([
+  const labelStyles = [
     styles.label,
     labelStyle,
-    textColor ? { color: textColor } : { color: theme.colors.onPrimary }, // Default to theme text color
-  ]);
+    textColor ? { color: textColor } : { color: theme.text },
+  ];
 
   return (
     <Button
@@ -61,10 +65,8 @@ const CustomButton: React.FC<CustomButtonProps> = ({
       style={buttonStyles}
       labelStyle={labelStyles}
       contentStyle={[styles.content, contentStyle]}
-      accessibilityLabel={accessibilityLabel}
-      testID={testID}
     >
-      {title}
+      {resolvedTitle}
     </Button>
   );
 };
@@ -73,12 +75,10 @@ const styles = StyleSheet.create({
   button: {
     marginVertical: 8,
     borderRadius: 8,
-    backgroundColor: "#6200ee", // Default background color
   },
   label: {
     fontSize: 16,
     textTransform: "uppercase",
-    color: "#ffffff", // Default text color
   },
   content: {
     height: 48,

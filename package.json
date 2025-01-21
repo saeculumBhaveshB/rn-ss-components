@@ -1,12 +1,12 @@
 {
   "name": "rn-ss-components",
-  "version": "1.0.3",
+  "version": "1.0.14",
   "description": "Custom React Native components using React Native Paper.",
-  "main": "dist/index.js",       
-  "types": "dist/index.d.ts",    
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
-    "build": "tsc"               
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -23,7 +23,13 @@
     "react-native": ">=0.68.0"
   },
   "dependencies": {
-    "react-native-paper": "^5.13.1"
+    "dayjs": "^1.11.13",
+    "dayjs-plugin-utc": "^0.1.2",
+    "i18next": "^24.2.1",
+    "moment-timezone": "^0.5.46",
+    "react-i18next": "^15.4.0",
+    "react-native-paper": "^5.13.1",
+    "rn-ss-components": "^1.0.12"
   },
   "devDependencies": {
     "@types/react": "^18.3.18",
