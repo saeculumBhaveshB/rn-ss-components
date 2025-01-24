@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState } from "react";
-import { lightTheme, darkTheme } from "./theme";
+import {
+  lightTheme as defaultLightTheme,
+  darkTheme as defaultDarkTheme,
+} from "./theme";
 
 interface Theme {
   primaryColor: string;
@@ -11,7 +14,7 @@ interface Theme {
 interface ThemeContextType {
   theme: Theme;
   setTheme: React.Dispatch<React.SetStateAction<Theme>>;
-  toggleTheme: () => void;
+  toggleTheme: (customLightTheme?: Theme, customDarkTheme?: Theme) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -19,11 +22,14 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [theme, setTheme] = useState(lightTheme);
+  const [theme, setTheme] = useState<Theme>(defaultLightTheme);
 
-  const toggleTheme = () => {
-    setTheme((prevTheme) =>
-      prevTheme === lightTheme ? darkTheme : lightTheme
+  const toggleTheme = (customLightTheme?: Theme, customDarkTheme?: Theme) => {
+    setTheme(
+      (prevTheme) =>
+        prevTheme === defaultLightTheme
+          ? customDarkTheme || defaultDarkTheme // Use custom dark theme or default
+          : customLightTheme || defaultLightTheme // Use custom light theme or default
     );
   };
 
