@@ -1,6 +1,6 @@
 {
   "name": "rn-ss-components",
-  "version": "1.0.20",
+  "version": "1.0.27",
   "description": "Custom React Native components using React Native Paper.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -23,6 +23,7 @@
     "react-native": ">=0.68.0"
   },
   "dependencies": {
+    "@react-native-picker/picker": "^2.11.0",
     "dayjs": "^1.11.13",
     "dayjs-plugin-utc": "^0.1.2",
     "i18next": "^24.2.1",
