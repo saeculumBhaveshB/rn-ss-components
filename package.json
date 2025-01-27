@@ -1,6 +1,6 @@
 {
   "name": "rn-ss-components",
-  "version": "1.0.27",
+  "version": "1.0.44",
   "description": "Custom React Native components using React Native Paper.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -31,6 +31,8 @@
     "react-i18next": "^15.4.0",
     "react-native-paper": "^5.13.1",
     "react-native-super-responsive": "^1.0.8",
+    "react-native-svg": "^15.11.1",
+    "react-native-svg-transformer": "^1.5.0",
     "rn-ss-components": "^1.0.12"
   },
   "devDependencies": {

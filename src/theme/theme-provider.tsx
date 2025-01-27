@@ -9,6 +9,7 @@ interface Theme {
   secondaryColor: string;
   background: string;
   text: string;
+  borderColor: string;
 }
 
 interface ThemeContextType {

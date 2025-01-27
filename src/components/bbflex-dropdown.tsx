@@ -7,8 +7,11 @@ import {
   FlatList,
   Modal,
   TextInput,
+  Image,
 } from "react-native";
-import { Checkbox } from "react-native-paper";
+import { useAppTheme } from "../theme/theme-provider"; // Custom theme provider
+import DefaultSelectedSvg from "../assets/icons/svg/select-checkbox"; // Default selected icon
+import DefaultUnselectedSvg from "../assets/icons/svg/unselect-checkbox"; // Default unselected icon
 
 interface Option {
   label: string;
@@ -22,6 +25,16 @@ interface BBFlexDropdownProps {
   placeholder?: string; // Placeholder text
   searchable?: boolean; // Enable search functionality
   multiSelect?: boolean; // Enable multi-select functionality
+  dropdownHeight?: number; // Maximum height for the dropdown list
+  closeButtonText?: string; // Custom text for the modal close button
+  modelBackgroundColor?: string; // Custom modal background color
+  selectedImage?: React.ReactNode; // Custom selected SVG/image
+  unselectedImage?: React.ReactNode; // Custom unselected SVG/image
+  imageWidthSize?: number; // Size of the custom/default images
+  imageHeightSize?: number; // Size of the custom/default images
+  checkboxImgColor?: string; // Size of the custom/default images
+  persistSelection?: boolean; // New prop for persistent selection
+  isRowTextColor?: boolean; // New prop for persistent selection
 }
 
 const BBFlexDropdown: React.FC<BBFlexDropdownProps> = ({
@@ -31,7 +44,18 @@ const BBFlexDropdown: React.FC<BBFlexDropdownProps> = ({
   placeholder = "Select an option",
   searchable = true,
   multiSelect = false,
+  dropdownHeight = 200,
+  closeButtonText = "Close",
+  modelBackgroundColor = "",
+  selectedImage, // Custom selected SVG/image
+  unselectedImage, // Custom unselected SVG/image
+  imageWidthSize = 20, // Default image size
+  imageHeightSize = 20, // Default image size
+  checkboxImgColor = "",
+  persistSelection = false, // New prop for persistent selection
+  isRowTextColor = false, // New prop for persistent selection
 }) => {
+  const { theme } = useAppTheme(); // Access theme
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -47,13 +71,11 @@ const BBFlexDropdown: React.FC<BBFlexDropdownProps> = ({
 
   const handleOptionToggle = (value: string) => {
     if (multiSelect) {
-      // Toggle selected options for multi-select
       const updatedSelection = selectedValues.includes(value)
         ? selectedValues.filter((item) => item !== value)
         : [...selectedValues, value];
       onValueChange(updatedSelection);
     } else {
-      // Update single selected value
       onValueChange(value);
       setModalVisible(false); // Close the modal for single-select
     }
@@ -61,18 +83,24 @@ const BBFlexDropdown: React.FC<BBFlexDropdownProps> = ({
   };
 
   const handleCloseModal = () => {
-    setModalVisible(false); // Close the modal
-    setSearchQuery(""); // Clear the search query
+    setModalVisible(false);
+    setSearchQuery("");
   };
 
   return (
     <View style={styles.container}>
       {/* Dropdown Trigger */}
       <TouchableOpacity
-        style={styles.trigger}
+        style={[
+          styles.trigger,
+          {
+            backgroundColor: theme.background,
+            borderColor: theme.borderColor,
+          },
+        ]}
         onPress={() => setModalVisible(true)}
       >
-        <Text style={styles.triggerText}>
+        <Text style={[styles.triggerText, { color: theme.text }]}>
           {multiSelect
             ? `${selectedValues.length} selected`
             : selectedValue || placeholder}
@@ -84,18 +112,37 @@ const BBFlexDropdown: React.FC<BBFlexDropdownProps> = ({
         visible={modalVisible}
         transparent
         animationType="slide"
-        onRequestClose={handleCloseModal} // Clear search when modal is closed
+        onRequestClose={handleCloseModal}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <View
+          style={[styles.modalOverlay, { backgroundColor: "rgba(0,0,0,0.5)" }]}
+        >
+          <View
+            style={[
+              styles.modalContent,
+              {
+                backgroundColor:
+                  modelBackgroundColor !== ""
+                    ? modelBackgroundColor
+                    : theme.background,
+              },
+            ]}
+          >
             {/* Search Bar */}
             {searchable && (
               <TextInput
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 placeholder="Search..."
-                style={styles.searchBar}
-                placeholderTextColor="#aaa"
+                style={[
+                  styles.searchBar,
+                  {
+                    backgroundColor: theme.background,
+                    color: theme.text,
+                    borderColor: theme.borderColor,
+                  },
+                ]}
+                placeholderTextColor={theme.text}
               />
             )}
 
@@ -103,35 +150,80 @@ const BBFlexDropdown: React.FC<BBFlexDropdownProps> = ({
             <FlatList
               data={filteredOptions}
               keyExtractor={(item) => item.value}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.option}
-                  onPress={() => handleOptionToggle(item.value)}
-                >
-                  {multiSelect && (
-                    <Checkbox
-                      status={
-                        selectedValues.includes(item.value)
-                          ? "checked"
-                          : "unchecked"
-                      }
-                      color="#6200ee"
-                    />
-                  )}
-                  <Text style={styles.optionText}>{item.label}</Text>
-                </TouchableOpacity>
-              )}
+              renderItem={({ item }) => {
+                const isChecked = selectedValues.includes(item.value);
+
+                const isSelected = multiSelect
+                  ? persistSelection && isChecked // Multi-select logic
+                  : persistSelection && selectedValue === item.value; // Single-select with persistSelection logic
+                return (
+                  <TouchableOpacity
+                    style={[
+                      styles.option,
+                      isSelected && {
+                        backgroundColor: theme.primaryColor + "33", // Highlight the row
+                      },
+                    ]}
+                    onPress={() => handleOptionToggle(item.value)}
+                  >
+                    {/* Render custom or default icons for multi-select */}
+                    {multiSelect && (
+                      <>
+                        {isChecked ? (
+                          selectedImage ? (
+                            selectedImage
+                          ) : (
+                            <DefaultSelectedSvg
+                              width={imageWidthSize}
+                              height={imageHeightSize}
+                              color={checkboxImgColor || theme.primaryColor}
+                            />
+                          )
+                        ) : unselectedImage ? (
+                          unselectedImage
+                        ) : (
+                          <DefaultUnselectedSvg
+                            width={imageWidthSize}
+                            height={imageHeightSize}
+                            color={checkboxImgColor || theme.text}
+                          />
+                        )}
+                      </>
+                    )}
+                    <Text
+                      style={[
+                        styles.optionText,
+                        {
+                          color: (isRowTextColor ? isChecked : isSelected)
+                            ? theme.primaryColor
+                            : theme.text,
+                        },
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              }}
+              style={{ maxHeight: dropdownHeight }}
               ListEmptyComponent={
-                <Text style={styles.noOptionsText}>No options found</Text>
+                <Text style={[styles.noOptionsText, { color: theme.text }]}>
+                  No options found
+                </Text>
               }
             />
 
             {/* Close Button */}
             <TouchableOpacity
-              onPress={handleCloseModal} // Clear search when modal is closed
-              style={styles.closeButton}
+              onPress={handleCloseModal}
+              style={[
+                styles.closeButton,
+                { backgroundColor: theme.primaryColor },
+              ]}
             >
-              <Text style={styles.closeButtonText}>Close</Text>
+              <Text style={[styles.closeButtonText, { color: theme.text }]}>
+                {closeButtonText}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -144,71 +236,51 @@ const styles = StyleSheet.create({
   container: {
     marginVertical: 8,
   },
-
   trigger: {
     padding: 12,
     borderWidth: 1,
     borderRadius: 8,
-    borderColor: "#6200ee",
-    backgroundColor: "#fff",
   },
-
   triggerText: {
-    color: "#000",
+    fontSize: 16,
   },
-
   modalOverlay: {
     flex: 1,
     justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
     padding: 16,
   },
-
   modalContent: {
-    backgroundColor: "#fff",
     borderRadius: 8,
     padding: 16,
   },
-
   searchBar: {
     marginBottom: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: "#ccc",
     borderRadius: 8,
-    color: "#000",
   },
-
   option: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
     flexDirection: "row",
     alignItems: "center",
   },
-
   optionText: {
-    color: "#000",
     marginLeft: 8,
+    fontSize: 16,
   },
-
   noOptionsText: {
     textAlign: "center",
     marginVertical: 8,
-    color: "#aaa",
   },
-
   closeButton: {
     marginTop: 16,
     padding: 12,
-    backgroundColor: "#6200ee",
     borderRadius: 8,
     alignItems: "center",
   },
-
   closeButtonText: {
-    color: "#fff",
     fontWeight: "bold",
   },
 });
