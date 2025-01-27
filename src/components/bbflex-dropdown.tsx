@@ -7,11 +7,15 @@ import {
   FlatList,
   Modal,
   TextInput,
-  Image,
+  StyleProp,
+  ViewStyle,
+  TextStyle,
 } from "react-native";
-import { useAppTheme } from "../theme/theme-provider"; // Custom theme provider
-import DefaultSelectedSvg from "../assets/icons/svg/select-checkbox"; // Default selected icon
-import DefaultUnselectedSvg from "../assets/icons/svg/unselect-checkbox"; // Default unselected icon
+import { useAppTheme } from "../theme/theme-provider";
+import { useTranslation } from "react-i18next";
+import DefaultSelectedSvg from "../assets/icons/svg/select-checkbox";
+import DefaultUnselectedSvg from "../assets/icons/svg/unselect-checkbox";
+import { wp, hp, scaleFont } from "react-native-super-responsive";
 
 interface Option {
   label: string;
@@ -19,57 +23,93 @@ interface Option {
 }
 
 interface BBFlexDropdownProps {
-  options: Option[]; // Dropdown options
-  selectedValue: string | string[]; // Selected value(s)
-  onValueChange: (value: string | string[]) => void; // Callback for value change
-  placeholder?: string; // Placeholder text
-  searchable?: boolean; // Enable search functionality
-  multiSelect?: boolean; // Enable multi-select functionality
-  dropdownHeight?: number; // Maximum height for the dropdown list
-  closeButtonText?: string; // Custom text for the modal close button
-  modelBackgroundColor?: string; // Custom modal background color
-  selectedImage?: React.ReactNode; // Custom selected SVG/image
-  unselectedImage?: React.ReactNode; // Custom unselected SVG/image
-  imageWidthSize?: number; // Size of the custom/default images
-  imageHeightSize?: number; // Size of the custom/default images
-  checkboxImgColor?: string; // Size of the custom/default images
-  persistSelection?: boolean; // New prop for persistent selection
-  isRowTextColor?: boolean; // New prop for persistent selection
+  options: Option[];
+  selectedValue: string | string[];
+  onValueChange: (value: string | string[]) => void;
+  placeholderKey?: string;
+  placeholderSearchKey?: string;
+  closeButtonTextKey?: string;
+  headerTitleKey?: string;
+  searchable?: boolean;
+  multiSelect?: boolean;
+  dropdownHeight?: number;
+  modelBackgroundColor?: string;
+  selectedImage?: React.ReactNode;
+  unselectedImage?: React.ReactNode;
+  imageWidthSize?: number;
+  imageHeightSize?: number;
+  checkboxImgColor?: string;
+  persistSelection?: boolean;
+  isRowTextColor?: boolean;
+  showHeader?: boolean;
+  showCloseButton?: boolean;
+  enableSearch?: boolean;
+
+  containerStyle?: StyleProp<ViewStyle>;
+  triggerStyle?: StyleProp<ViewStyle>;
+  triggerTextStyle?: StyleProp<TextStyle>;
+  modalOverlayStyle?: StyleProp<ViewStyle>;
+  modalContentStyle?: StyleProp<ViewStyle>;
+  headerStyle?: StyleProp<ViewStyle>;
+  headerTitleStyle?: StyleProp<TextStyle>;
+  headerCloseStyle?: StyleProp<TextStyle>;
+  searchBarStyle?: StyleProp<ViewStyle>;
+  optionStyle?: StyleProp<ViewStyle>;
+  optionTextStyle?: StyleProp<TextStyle>;
+  closeButtonStyle?: StyleProp<ViewStyle>;
+  closeButtonTextStyle?: StyleProp<TextStyle>;
 }
 
 const BBFlexDropdown: React.FC<BBFlexDropdownProps> = ({
   options,
   selectedValue,
   onValueChange,
-  placeholder = "Select an option",
+  placeholderKey = "dropdown.placeholder",
+  placeholderSearchKey = "dropdown.search",
+  closeButtonTextKey = "dropdown.close",
+  headerTitleKey = "dropdown.header",
   searchable = true,
   multiSelect = false,
   dropdownHeight = 200,
-  closeButtonText = "Close",
   modelBackgroundColor = "",
-  selectedImage, // Custom selected SVG/image
-  unselectedImage, // Custom unselected SVG/image
-  imageWidthSize = 20, // Default image size
-  imageHeightSize = 20, // Default image size
+  selectedImage,
+  unselectedImage,
+  imageWidthSize = 20,
+  imageHeightSize = 20,
   checkboxImgColor = "",
-  persistSelection = false, // New prop for persistent selection
-  isRowTextColor = false, // New prop for persistent selection
+  persistSelection = false,
+  isRowTextColor = false,
+  showHeader = true,
+  showCloseButton = true,
+  enableSearch = true,
+  containerStyle,
+  triggerStyle,
+  triggerTextStyle,
+  modalOverlayStyle,
+  modalContentStyle,
+  headerStyle,
+  headerTitleStyle,
+  headerCloseStyle,
+  searchBarStyle,
+  optionStyle,
+  optionTextStyle,
+  closeButtonStyle,
+  closeButtonTextStyle,
 }) => {
-  const { theme } = useAppTheme(); // Access theme
+  const { theme } = useAppTheme();
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Ensure selectedValue is an array for multi-select
   const selectedValues = Array.isArray(selectedValue)
     ? selectedValue
     : [selectedValue];
 
-  // Filter options based on the search query
   const filteredOptions = options.filter((option) =>
     option.label.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleOptionToggle = (value: string) => {
+  const toggleOption = (value: string) => {
     if (multiSelect) {
       const updatedSelection = selectedValues.includes(value)
         ? selectedValues.filter((item) => item !== value)
@@ -77,19 +117,144 @@ const BBFlexDropdown: React.FC<BBFlexDropdownProps> = ({
       onValueChange(updatedSelection);
     } else {
       onValueChange(value);
-      setModalVisible(false); // Close the modal for single-select
+      setModalVisible(false);
     }
-    setSearchQuery(""); // Clear the search query
-  };
-
-  const handleCloseModal = () => {
-    setModalVisible(false);
     setSearchQuery("");
   };
 
+  const renderHeader = () =>
+    showHeader && (
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: theme.primaryColor },
+          headerStyle,
+        ]}
+      >
+        <Text
+          style={[styles.headerTitle, { color: theme.text }, headerTitleStyle]}
+        >
+          {t(headerTitleKey)}
+        </Text>
+        <TouchableOpacity onPress={() => setModalVisible(false)}>
+          <Text
+            style={[
+              styles.headerClose,
+              { color: theme.text },
+              headerCloseStyle,
+            ]}
+          >
+            X
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+
+  const renderSearchBar = () => {
+    if (!enableSearch || !searchable) return null;
+
+    return (
+      <TextInput
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        placeholder={t(placeholderSearchKey)}
+        style={[
+          styles.searchBar,
+          {
+            backgroundColor: theme.background,
+            color: theme.text,
+            borderColor: theme.borderColor,
+          },
+        ]}
+        placeholderTextColor={theme.text}
+      />
+    );
+  };
+
+  const renderOptions = () => (
+    <FlatList
+      data={filteredOptions}
+      keyExtractor={(item) => item.value}
+      renderItem={({ item }) => {
+        const isChecked = selectedValues.includes(item.value);
+        const isSelected = multiSelect
+          ? persistSelection && isChecked
+          : persistSelection && selectedValue === item.value;
+
+        return (
+          <TouchableOpacity
+            style={[
+              styles.option,
+              isSelected && { backgroundColor: `${theme.primaryColor}33` },
+              optionStyle,
+            ]}
+            onPress={() => toggleOption(item.value)}
+          >
+            {multiSelect &&
+              (isChecked
+                ? selectedImage || (
+                    <DefaultSelectedSvg
+                      width={imageWidthSize}
+                      height={imageHeightSize}
+                      color={checkboxImgColor || theme.primaryColor}
+                    />
+                  )
+                : unselectedImage || (
+                    <DefaultUnselectedSvg
+                      width={imageWidthSize}
+                      height={imageHeightSize}
+                      color={checkboxImgColor || theme.text}
+                    />
+                  ))}
+            <Text
+              style={[
+                styles.optionText,
+                {
+                  color: (isRowTextColor ? isChecked : isSelected)
+                    ? theme.primaryColor
+                    : theme.text,
+                },
+                optionTextStyle,
+              ]}
+            >
+              {item.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      }}
+      style={{ maxHeight: dropdownHeight }}
+      ListEmptyComponent={
+        <Text style={[styles.noOptionsText, optionTextStyle]}>
+          {t("dropdown.noOptions")}
+        </Text>
+      }
+    />
+  );
+
+  const renderCloseButton = () =>
+    showCloseButton && (
+      <TouchableOpacity
+        onPress={() => setModalVisible(false)}
+        style={[
+          styles.closeButton,
+          { backgroundColor: theme.primaryColor },
+          closeButtonStyle,
+        ]}
+      >
+        <Text
+          style={[
+            styles.closeButtonText,
+            { color: theme.text },
+            closeButtonTextStyle,
+          ]}
+        >
+          {t(closeButtonTextKey)}
+        </Text>
+      </TouchableOpacity>
+    );
+
   return (
-    <View style={styles.container}>
-      {/* Dropdown Trigger */}
+    <View style={[styles.container, containerStyle]}>
       <TouchableOpacity
         style={[
           styles.trigger,
@@ -97,134 +262,39 @@ const BBFlexDropdown: React.FC<BBFlexDropdownProps> = ({
             backgroundColor: theme.background,
             borderColor: theme.borderColor,
           },
+          triggerStyle,
         ]}
         onPress={() => setModalVisible(true)}
       >
-        <Text style={[styles.triggerText, { color: theme.text }]}>
+        <Text
+          style={[styles.triggerText, { color: theme.text }, triggerTextStyle]}
+        >
           {multiSelect
             ? `${selectedValues.length} selected`
-            : selectedValue || placeholder}
+            : selectedValue || t(placeholderKey)}
         </Text>
       </TouchableOpacity>
 
-      {/* Modal for Dropdown Options */}
       <Modal
         visible={modalVisible}
         transparent
         animationType="slide"
-        onRequestClose={handleCloseModal}
+        onRequestClose={() => setModalVisible(false)}
       >
-        <View
-          style={[styles.modalOverlay, { backgroundColor: "rgba(0,0,0,0.5)" }]}
-        >
+        <View style={[styles.modalOverlay, modalOverlayStyle]}>
+          {renderHeader()}
           <View
             style={[
               styles.modalContent,
               {
-                backgroundColor:
-                  modelBackgroundColor !== ""
-                    ? modelBackgroundColor
-                    : theme.background,
+                backgroundColor: modelBackgroundColor || theme.background,
               },
+              modalContentStyle,
             ]}
           >
-            {/* Search Bar */}
-            {searchable && (
-              <TextInput
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                placeholder="Search..."
-                style={[
-                  styles.searchBar,
-                  {
-                    backgroundColor: theme.background,
-                    color: theme.text,
-                    borderColor: theme.borderColor,
-                  },
-                ]}
-                placeholderTextColor={theme.text}
-              />
-            )}
-
-            {/* Options List */}
-            <FlatList
-              data={filteredOptions}
-              keyExtractor={(item) => item.value}
-              renderItem={({ item }) => {
-                const isChecked = selectedValues.includes(item.value);
-
-                const isSelected = multiSelect
-                  ? persistSelection && isChecked // Multi-select logic
-                  : persistSelection && selectedValue === item.value; // Single-select with persistSelection logic
-                return (
-                  <TouchableOpacity
-                    style={[
-                      styles.option,
-                      isSelected && {
-                        backgroundColor: theme.primaryColor + "33", // Highlight the row
-                      },
-                    ]}
-                    onPress={() => handleOptionToggle(item.value)}
-                  >
-                    {/* Render custom or default icons for multi-select */}
-                    {multiSelect && (
-                      <>
-                        {isChecked ? (
-                          selectedImage ? (
-                            selectedImage
-                          ) : (
-                            <DefaultSelectedSvg
-                              width={imageWidthSize}
-                              height={imageHeightSize}
-                              color={checkboxImgColor || theme.primaryColor}
-                            />
-                          )
-                        ) : unselectedImage ? (
-                          unselectedImage
-                        ) : (
-                          <DefaultUnselectedSvg
-                            width={imageWidthSize}
-                            height={imageHeightSize}
-                            color={checkboxImgColor || theme.text}
-                          />
-                        )}
-                      </>
-                    )}
-                    <Text
-                      style={[
-                        styles.optionText,
-                        {
-                          color: (isRowTextColor ? isChecked : isSelected)
-                            ? theme.primaryColor
-                            : theme.text,
-                        },
-                      ]}
-                    >
-                      {item.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              }}
-              style={{ maxHeight: dropdownHeight }}
-              ListEmptyComponent={
-                <Text style={[styles.noOptionsText, { color: theme.text }]}>
-                  No options found
-                </Text>
-              }
-            />
-
-            {/* Close Button */}
-            <TouchableOpacity
-              onPress={handleCloseModal}
-              style={[
-                styles.closeButton,
-                { backgroundColor: theme.primaryColor },
-              ]}
-            >
-              <Text style={[styles.closeButtonText, { color: theme.text }]}>
-                {closeButtonText}
-              </Text>
-            </TouchableOpacity>
+            {renderSearchBar()}
+            {renderOptions()}
+            {renderCloseButton()}
           </View>
         </View>
       </Modal>
@@ -233,56 +303,54 @@ const BBFlexDropdown: React.FC<BBFlexDropdownProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginVertical: 8,
-  },
-  trigger: {
-    padding: 12,
-    borderWidth: 1,
-    borderRadius: 8,
-  },
-  triggerText: {
-    fontSize: 16,
-  },
+  container: { marginVertical: hp(1) },
+  trigger: { padding: hp(1.5), borderWidth: wp(0.5), borderRadius: wp(2) },
+  triggerText: { fontSize: scaleFont(12) },
   modalOverlay: {
     flex: 1,
     justifyContent: "center",
-    padding: 16,
+    padding: wp(4),
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
-    borderRadius: 8,
-    padding: 16,
+    borderBottomLeftRadius: wp(2),
+    borderBottomRightRadius: wp(2),
+    padding: wp(4),
   },
   searchBar: {
-    marginBottom: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderRadius: 8,
+    marginBottom: hp(1),
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+    borderWidth: wp(0.5),
+    borderRadius: wp(2),
   },
   option: {
-    padding: 12,
-    borderBottomWidth: 1,
+    padding: wp(3),
+    borderBottomWidth: wp(0.2),
     flexDirection: "row",
     alignItems: "center",
   },
-  optionText: {
-    marginLeft: 8,
-    fontSize: 16,
-  },
-  noOptionsText: {
-    textAlign: "center",
-    marginVertical: 8,
-  },
+  optionText: { marginLeft: wp(2), fontSize: scaleFont(12) },
+  noOptionsText: { textAlign: "center", marginVertical: hp(2) },
   closeButton: {
-    marginTop: 16,
-    padding: 12,
-    borderRadius: 8,
+    marginTop: hp(2),
+    padding: hp(1.5),
+    borderRadius: wp(2),
     alignItems: "center",
   },
-  closeButtonText: {
-    fontWeight: "bold",
+  closeButtonText: { fontWeight: "bold", fontSize: scaleFont(16) },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: hp(1.5),
+    borderBottomWidth: wp(0.2),
+    borderBottomColor: "#ccc",
+    borderTopLeftRadius: wp(2),
+    borderTopRightRadius: wp(2),
   },
+  headerTitle: { fontSize: scaleFont(16), fontWeight: "bold" },
+  headerClose: { fontSize: scaleFont(16), fontWeight: "bold" },
 });
 
 export { BBFlexDropdown };
