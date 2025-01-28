@@ -178,7 +178,7 @@ const BBFlexDropdown: React.FC<BBFlexDropdownProps> = ({
   const renderOptions = () => (
     <FlatList
       data={filteredOptions}
-      keyExtractor={(item) => item.value}
+      keyExtractor={(item) => `${item.label}-${item.value}`}
       renderItem={({ item }) => {
         const isChecked = selectedValues.includes(item.value);
         const isSelected = multiSelect
