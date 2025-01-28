@@ -10,12 +10,13 @@ import {
   StyleProp,
   ViewStyle,
   TextStyle,
+  DimensionValue,
 } from "react-native";
 import { useAppTheme } from "../theme/theme-provider";
 import { useTranslation } from "react-i18next";
 import DefaultSelectedSvg from "../assets/icons/svg/select-checkbox";
 import DefaultUnselectedSvg from "../assets/icons/svg/unselect-checkbox";
-import { wp, hp, scaleFont } from "react-native-super-responsive";
+import { wp, hp, scaleFont } from "react-native-super-responsive"; // Responsive styles
 
 interface Option {
   label: string;
@@ -44,6 +45,7 @@ interface BBFlexDropdownProps {
   showHeader?: boolean;
   showCloseButton?: boolean;
   enableSearch?: boolean;
+  modalHeight?: DimensionValue;
 
   containerStyle?: StyleProp<ViewStyle>;
   triggerStyle?: StyleProp<ViewStyle>;
@@ -82,6 +84,8 @@ const BBFlexDropdown: React.FC<BBFlexDropdownProps> = ({
   showHeader = true,
   showCloseButton = true,
   enableSearch = true,
+
+  modalHeight = "36%",
   containerStyle,
   triggerStyle,
   triggerTextStyle,
@@ -288,6 +292,7 @@ const BBFlexDropdown: React.FC<BBFlexDropdownProps> = ({
               styles.modalContent,
               {
                 backgroundColor: modelBackgroundColor || theme.background,
+                height: modalHeight,
               },
               modalContentStyle,
             ]}
