@@ -229,7 +229,7 @@ const BBFlexDropdown: React.FC<BBFlexDropdownProps> = ({
       style={{ maxHeight: dropdownHeight }}
       ListEmptyComponent={
         <Text style={[styles.noOptionsText, optionTextStyle]}>
-          {t("dropdown.noOptions")}
+          {t("No results found")}
         </Text>
       }
     />
